@@ -3,12 +3,22 @@
 namespace SimpleRouter\Tests;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use SimpleRouter\Exceptions\HandlerAlreadyExistException;
+use SimpleRouter\Exceptions\RespondAlreadySentException;
+use SimpleRouter\Request;
 use SimpleRouter\Response;
 use SimpleRouter\Router;
 
 class RouterTest extends TestCase
 {
+    protected static function getMethodOfClass($cname, $name) {
+        $class = new ReflectionClass($cname);
+        $method = $class->getMethod($name);
+        $method->setAccessible(true);
+        return $method;
+    }
+
     public function testAddRemoveHandler()
     {
         $router = new Router();
@@ -43,6 +53,148 @@ class RouterTest extends TestCase
 
         $response = new Response();
         $router = new Router();
-        $router->dispath();
+        $router->dispatch();
+    }
+
+    public function testDispatchTwice()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/fake_access';
+
+        $this->expectException(RespondAlreadySentException::class);
+
+        $router = new Router();
+        $router->dispatch(null,$response);
+        $router->dispatch(null,$response);
+    }
+
+    public function testDispatchTwiceGlobal()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/fake_access';
+
+        $this->expectException(RespondAlreadySentException::class);
+
+        $router = new Router();
+        $router->dispatch();
+        $router->dispatch();
+    }
+
+    public function testRemoveGetParamFromUrl()
+    {
+        $router = new Router();
+        $targetMethod = self::getMethodOfClass('SimpleRouter\Router','removeGetParamFromUrl');
+        $this->assertEquals(
+            'http://localhost/some_dir',
+            $targetMethod->invokeArgs($router,array("http://localhost/some_dir?key=value"))
+        );
+
+        $this->assertEquals(
+            'http://localhost/some_dir',
+            $targetMethod->invokeArgs($router,array("http://localhost/some_dir?key=value"))
+        );
+    }
+
+    public function testAccess404()
+    {
+        $router = new Router();
+        $respond = $router->dispatch(null,$respond,false);
+
+        $this->assertEquals(404, $respond->status_code);
+    }
+
+    public function testAccess404Sent()
+    {
+        $router = new Router();
+        $respond = $router->dispatch(null,$respond);
+
+        $this->assertEquals(404, $respond->status_code);
+        $this->assertEquals(true, $respond->isSent());
+    }
+
+    public function testAccessIndex()
+    {
+        $router = new Router();
+        $router->respond('GET','/',function()
+        {
+            return 'hello, world!';
+        });
+        $request = new Request('GET');
+        $request->url = '/';
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('hello, world!', $respond->body);
+
+    }
+
+    public function testAccessPageFromDifferentHandler()
+    {
+        $router = new Router();
+        $router->respond('GET','/',function()
+        {
+            return 'hello, world!';
+        });
+        $router->respond('GET','/test',function()
+        {
+            return 'test';
+        });
+        $router->respond('GET','/test2',function()
+        {
+            return 'test2';
+        });
+        $router->respond('GET','/test/.+',function()
+        {
+            return 'test3';
+        });
+        $router->respond('GET','/test4',function()
+        {
+            return 'test4';
+        });
+
+        $request = new Request('GET');
+
+        $request->url = '/';
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('hello, world!', $respond->body);
+
+        $request->url = '/test';
+        $respond = null;
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('test', $respond->body);
+
+        $request->url = '/test2';
+        $respond = null;
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('test2', $respond->body);
+
+        $request->url = '/test/test';
+        $respond = null;
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('test3', $respond->body);
+
+        $request->url = '/test4?k=v';
+        $respond = null;
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('test4', $respond->body);
+
+        $request->url = '/test4/?k=v';
+        $respond = null;
+        $respond = $router->dispatch($request,$respond, false);
+
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('test4', $respond->body);
+
+
     }
 }
