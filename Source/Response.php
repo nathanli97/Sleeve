@@ -24,9 +24,9 @@ class Response
 
     /**
      * The HTTP Cookies
-     * @var array
+     * @var ResponseCookies
      */
-    public array $cookies;
+    public ResponseCookies $cookies;
 
     /**
      * The Response message body
@@ -47,18 +47,9 @@ class Response
     {
         $this->status_code = 200;
         $this->headers = array();
-        $this->cookies = array();
+        $this->cookies = new ResponseCookies();
         $this->sent = false;
         $this->body = '';
-    }
-
-    /**
-     * Converts the cookies to HTTP Header to prepare for sent
-     * @return void
-     */
-    public function convertCookieToHeader(): void
-    {
-        // TODO
     }
 
     /**
@@ -71,7 +62,12 @@ class Response
         {
             throw new RespondAlreadySentException();
         }
-        $this->convertCookieToHeader();
+
+        if($this->cookies->hasCookies())
+        {
+            $this->cookies->setCookies();
+        }
+
         http_response_code($this->status_code);
         $this->sendHeaders();
         print $this->body;
