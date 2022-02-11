@@ -49,12 +49,20 @@ class Router
         $matches = [];
 
         $url_without_get_params = $this->removeGetParamFromUrl($request->url);
-
+        if(isset($request->server['SCRIPT_NAME']))
+        {
+            $url_without_get_params = $this->removePhpFileFromUrl($url_without_get_params, $request->server['SCRIPT_NAME']);
+            if(strlen($url_without_get_params) == 0)
+            {
+                $url_without_get_params = '/';
+            }
+        }
         foreach ($pending_matches as $regex => $callback)
         {
-            if(preg_match("~$regex~", $url_without_get_params))
+            if(preg_match("~$regex~", $url_without_get_params, $preg_matches)
+                && strlen($preg_matches[0]) == strlen($url_without_get_params))
             {
-                $matches[$regex] = $callback;
+                $matches[$preg_matches[0]] = $callback;
             }
         }
 
@@ -62,9 +70,10 @@ class Router
         {
             foreach ($this->handlers['GET'] as $regex => $callback)
             {
-                if(preg_match($regex, $url_without_get_params))
+                if(preg_match("~$regex~", $url_without_get_params, $preg_matches)
+                    && strlen($preg_matches[0]) == strlen($url_without_get_params))
                 {
-                    $matches[$regex] = $callback;
+                    $matches[$preg_matches[0]] = $callback;
                 }
             }
         }
@@ -89,21 +98,18 @@ class Router
             return $response;
         }
 
-        //$bestMatchRegex = null;
         $bestMatchCallback = null;
         $bestMatchLength = PHP_INT_MIN;
 
-        foreach ($matches as $regex => $callback)
+        foreach ($matches as $match => $callback)
         {
-            $matchLen = strlen($regex);
+            $matchLen = strlen($match);
             if($matchLen > $bestMatchLength)
             {
-                //$bestMatchRegex = $regex;
                 $bestMatchCallback = $callback;
                 $bestMatchLength = $matchLen;
             }
         }
-        // TODO - Set params for request obj
         $response_fromCallback = $bestMatchCallback($request);
 
         if(is_integer($response_fromCallback))
@@ -208,6 +214,18 @@ class Router
             {
                 $url = substr($url,0,strlen($url) - 1);
             }
+            return $url;
+        }
+    }
+    private function removePhpFileFromUrl(string $url, string $file): string
+    {
+        if(strlen($url) >= strlen($file) &&
+            substr($url,0,strlen($file)) === $file)
+        {
+            return substr($url,strlen($file));
+        }
+        else
+        {
             return $url;
         }
     }
