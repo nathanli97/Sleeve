@@ -8,15 +8,60 @@ use SimpleRouter\Exceptions\HandlerNotExistsException;
 use SimpleRouter\Exceptions\RespondAlreadySentException;
 use SimpleRouter\Exceptions\UnexceptedCallbackFuntionReturnValue;
 
+/**
+ * The Router class.
+ * This is the main class of this library.
+ */
 class Router
 {
+    /**
+     * The route handlers.
+     * @var array
+     */
+    protected array $handlers;
 
+    /**
+     * Indicates if a response has been sent.
+     * @var bool
+     */
+    protected bool $sent;
+
+    /**
+     * The HTTP Error callback functions.
+     * @var array
+     */
+    protected array $http_error_callbacks;
+
+    /**
+     * Constructor.
+     */
     public function __construct()
     {
         $this->initHandlersArray();
         $this->sent = false;
         $this->http_error_callbacks = array();
     }
+
+    /**
+     * Add a handler(route) to respond message when receive a http request.
+     * For example, Add a route for GET request '/' :
+     * $router = new Router();
+     * $router->respond('get', '/', function(){return 'hello-world';}); // With HTTP 200 OK.
+     *
+     * The callback function can return the following types:
+     * - Text. (string)
+     *    When returning this message, the string you returned will be sent to browser as respond body, with HTTP Status
+     * Code 200.
+     * - A number.
+     *  If 100 <= number <= 599, This number will be treated as HTTP Status Code
+     *  Otherwise, it will be sent to browser with HTTP 200 OK after translating to string.
+     * - A Object : instance of Response.
+     *  The router will use the response directly.
+     * @param string $method
+     * @param string $regex
+     * @param $callback
+     * @return void
+     */
     public function respond(string $method, string $regex = "", $callback = null)
     {
         $method = strtoupper($method);
@@ -25,7 +70,14 @@ class Router
     }
 
     /**
-     * @throws Exceptions\RespondAlreadySentException
+     * Dispatch the request.
+     * If $request is null, the router will create a request from webserver(e.g. Apache2).
+     * If $send_response is true, this response will be sent.
+     * @param Request|null $request
+     * @param Response|null $response
+     * @param bool $send_response
+     * @return Response
+     * @throws RespondAlreadySentException
      */
     public function dispatch(Request $request = null, Response &$response = null, bool $send_response = true): Response
     {
@@ -144,6 +196,12 @@ class Router
         return $response;
     }
 
+    /**
+     * Removes the given handler.
+     * @param string $method
+     * @param string $regex
+     * @return void
+     */
     public function removeHandler(string $method, string $regex = "")
     {
         if(!$this->existsHandler($method, $regex))
@@ -154,11 +212,21 @@ class Router
         unset($this->handlers[$method][$regex]);
     }
 
+    /**
+     * Indicates the given handler is existed.
+     * @param string $method
+     * @param string $regex
+     * @return bool
+     */
     public function existsHandler(string $method, string $regex): bool
     {
         return array_key_exists($regex, $this->handlers[$method]);
     }
 
+    /**
+     * Returns how many routes is being defined.
+     * @return int
+     */
     public function getRouteNum(): int
     {
         $num = 0;
@@ -169,11 +237,30 @@ class Router
         return $num;
     }
 
+    /**
+     * Add callback function for Http Error Handler.
+     * When the router encounters HTTP Error, This Handler will be called.
+     * @param $callback
+     * @return void
+     */
     public function onHttpError($callback)
     {
         $this->http_error_callbacks[] = $callback;
     }
 
+    /**
+     * Clear all HTTP Error callback function
+     * @return void
+     */
+    public function clearHttpErrorHandlers(): void
+    {
+        $this->http_error_callbacks = array();
+    }
+
+    /**
+     * Initializes the route handlers.
+     * @return void
+     */
     private function initHandlersArray(): void
     {
         $this->handlers = array();
@@ -185,6 +272,13 @@ class Router
         $this->handlers['DELETE'] = array();
     }
 
+    /**
+     * Add a route handler.
+     * @param string $method
+     * @param string $regex
+     * @param $callback
+     * @return void
+     */
     private function addHandler(string $method, string $regex, $callback): void
     {
         if($this->existsHandler($method, $regex))
@@ -196,6 +290,15 @@ class Router
         $this->handlers[$method][$regex] = $callback;
     }
 
+    /**
+     * Removes all HTTP GET params from URL.
+     * For example:
+     * INDEX PHP FILE($file): /www/index.php
+     * REQUEST URL($url): /www/index.php/hello_world?key=1234
+     * FUNCTION RETURNS: /www/index.php/hello_world
+     * @param string $url
+     * @return string
+     */
     private function removeGetParamFromUrl(string $url): string
     {
         $paramStart = strpos($url, '?');
@@ -217,6 +320,17 @@ class Router
             return $url;
         }
     }
+
+    /**
+     * Removes PHP File name from url.
+     * For example:
+     * INDEX PHP FILE($file): /www/index.php
+     * REQUEST URL($url): /www/index.php/hello_world?key=1234
+     * FUNCTION RETURNS: /hello_world?key=1234
+     * @param string $url
+     * @param string $file
+     * @return string
+     */
     private function removePhpFileFromUrl(string $url, string $file): string
     {
         if(strlen($url) >= strlen($file) &&
@@ -229,8 +343,4 @@ class Router
             return $url;
         }
     }
-
-    protected array $handlers;
-    protected bool $sent;
-    protected array $http_error_callbacks;
 }

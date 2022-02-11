@@ -85,13 +85,8 @@ class RouterTest extends TestCase
         $router = new Router();
         $targetMethod = self::getMethodOfClass('SimpleRouter\Router','removeGetParamFromUrl');
         $this->assertEquals(
-            'http://localhost/some_dir',
-            $targetMethod->invokeArgs($router,array("http://localhost/some_dir?key=value"))
-        );
-
-        $this->assertEquals(
-            'http://localhost/some_dir',
-            $targetMethod->invokeArgs($router,array("http://localhost/some_dir?key=value"))
+            '/www/index.php/hello_world',
+            $targetMethod->invokeArgs($router,array("/www/index.php/hello_world?key=1234"))
         );
     }
 
@@ -195,6 +190,16 @@ class RouterTest extends TestCase
         $this->assertEquals(200, $respond->status_code);
         $this->assertEquals('test4', $respond->body);
 
+    }
 
+    public function testRemovePhpFileFromUrl()
+    {
+        $router = new Router();
+        $targetMethod = self::getMethodOfClass('SimpleRouter\Router','RemovePhpFileFromUrl');
+        $this->assertEquals(
+            '/hello_world?key=1234',
+            $targetMethod->invokeArgs($router,array("/www/index.php/hello_world?key=1234",
+                "/www/index.php"))
+        );
     }
 }
