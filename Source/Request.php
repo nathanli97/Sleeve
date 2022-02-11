@@ -87,7 +87,12 @@ class Request
         $this->cookies = $cookies;
         $this->server = $server;
         $this->files = $files;
-        $this->body = $body;
+
+        // Take care the default value
+        if($body !== '')
+        {
+            $this->body = $body;
+        }
     }
 
     /**
@@ -104,11 +109,12 @@ class Request
         $request->cookies = $_COOKIE;
         $request->server = $_SERVER;
         $request->headers = self::getAllHeaders();
+        $request->body = @file_get_contents('php://input');
         return $request;
     }
 
     /**
-     * Gets all headers from request
+     * Gets all HTTP headers from request
      * @return array
      */
     private static function getAllHeaders(): array
