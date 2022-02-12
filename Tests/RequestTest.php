@@ -1,7 +1,9 @@
 <?php
 
+namespace Sleeve\Tests;
+
 use PHPUnit\Framework\TestCase;
-use \SimpleRouter\Request;
+use Sleeve\Request;
 
 class RequestTest extends TestCase
 {

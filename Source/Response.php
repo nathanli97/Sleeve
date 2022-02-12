@@ -1,15 +1,17 @@
 <?php
 
-namespace SimpleRouter;
+namespace Sleeve;
 
-use SimpleRouter\Exceptions\RespondAlreadySentException;
+use Sleeve\Exceptions\RespondAlreadySentException;
 
 /**
  * The Response class
+ * @author nathanli <xingru97@gmail.com>
+ * @package Sleeve
+ * @license MIT
  */
 class Response
 {
-
     /**
      * The HTTP Status Code
      * @var int
@@ -58,13 +60,11 @@ class Response
      */
     public function send()
     {
-        if($this->sent)
-        {
+        if ($this->sent) {
             throw new RespondAlreadySentException();
         }
 
-        if($this->cookies->hasCookies())
-        {
+        if ($this->cookies->hasCookies()) {
             $this->cookies->setCookies();
         }
 
@@ -102,10 +102,8 @@ class Response
      */
     protected function sendHeaders()
     {
-        foreach ($this->headers as $key => $value)
-        {
+        foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
     }
-
 }

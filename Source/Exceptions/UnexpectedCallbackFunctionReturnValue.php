@@ -3,11 +3,11 @@
 namespace Sleeve\Exceptions;
 
 /**
- * Respond already sent Exception
+ * Unexpected Callback function return value exception
  * @author nathanli <xingru97@gmail.com>
  * @package Sleeve
  * @license MIT
  */
-class RespondAlreadySentException extends \Exception
+class UnexpectedCallbackFunctionReturnValue extends \RuntimeException
 {
 }

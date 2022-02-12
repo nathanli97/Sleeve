@@ -1,16 +1,18 @@
 <?php
 
-namespace SimpleRouter;
+namespace Sleeve;
 
-
-use SimpleRouter\Exceptions\HandlerAlreadyExistException;
-use SimpleRouter\Exceptions\HandlerNotExistsException;
-use SimpleRouter\Exceptions\RespondAlreadySentException;
-use SimpleRouter\Exceptions\UnexceptedCallbackFuntionReturnValue;
+use Sleeve\Exceptions\HandlerAlreadyExistException;
+use Sleeve\Exceptions\HandlerNotExistsException;
+use Sleeve\Exceptions\RespondAlreadySentException;
+use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValue;
 
 /**
  * The Router class.
  * This is the main class of this library.
+ * @author nathanli <xingru97@gmail.com>
+ * @package Sleeve
+ * @license MIT
  */
 class Router
 {
@@ -81,18 +83,15 @@ class Router
      */
     public function dispatch(Request $request = null, Response &$response = null, bool $send_response = true): Response
     {
-        if($request === null)
-        {
+        if ($request === null) {
             $request = Request::createFromEnvironment();
         }
 
-        if($response === null)
-        {
+        if ($response === null) {
             $response = new Response();
         }
 
-        if($this->sent)
-        {
+        if ($this->sent) {
             throw new RespondAlreadySentException();
         }
 
@@ -101,49 +100,45 @@ class Router
         $matches = [];
 
         $url_without_get_params = $this->removeGetParamFromUrl($request->url);
-        if(isset($request->server['SCRIPT_NAME']))
-        {
-            $url_without_get_params = $this->removePhpFileFromUrl($url_without_get_params, $request->server['SCRIPT_NAME']);
-            if(strlen($url_without_get_params) == 0)
-            {
+        if (isset($request->server['SCRIPT_NAME'])) {
+            $url_without_get_params = $this->removePhpFileFromUrl(
+                $url_without_get_params,
+                $request->server['SCRIPT_NAME']
+            );
+            if (strlen($url_without_get_params) == 0) {
                 $url_without_get_params = '/';
             }
         }
-        foreach ($pending_matches as $regex => $callback)
-        {
-            if(preg_match("~$regex~", $url_without_get_params, $preg_matches)
-                && strlen($preg_matches[0]) == strlen($url_without_get_params))
-            {
+        foreach ($pending_matches as $regex => $callback) {
+            if (
+                preg_match("~$regex~", $url_without_get_params, $preg_matches)
+                && strlen($preg_matches[0]) == strlen($url_without_get_params)
+            ) {
                 $matches[$preg_matches[0]] = $callback;
             }
         }
 
-        if($request->method == 'HEAD' && sizeof($matches) == 0)
-        {
-            foreach ($this->handlers['GET'] as $regex => $callback)
-            {
-                if(preg_match("~$regex~", $url_without_get_params, $preg_matches)
-                    && strlen($preg_matches[0]) == strlen($url_without_get_params))
-                {
+        if ($request->method == 'HEAD' && sizeof($matches) == 0) {
+            foreach ($this->handlers['GET'] as $regex => $callback) {
+                if (
+                    preg_match("~$regex~", $url_without_get_params, $preg_matches)
+                    && strlen($preg_matches[0]) == strlen($url_without_get_params)
+                ) {
                     $matches[$preg_matches[0]] = $callback;
                 }
             }
         }
 
-        if(sizeof($matches) == 0)
-        {
+        if (sizeof($matches) == 0) {
             $response = Response::generateFromStatusCode(404);
 
-            if(sizeof($this->http_error_callbacks) > 0)
-            {
-                foreach ($this->http_error_callbacks as $callback)
-                {
+            if (sizeof($this->http_error_callbacks) > 0) {
+                foreach ($this->http_error_callbacks as $callback) {
                     $callback($request, $response);
                 }
             }
 
-            if(!$this->sent && $send_response)
-            {
+            if (!$this->sent && $send_response) {
                 $response->send();
                 $this->sent = true;
             }
@@ -153,41 +148,30 @@ class Router
         $bestMatchCallback = null;
         $bestMatchLength = PHP_INT_MIN;
 
-        foreach ($matches as $match => $callback)
-        {
+        foreach ($matches as $match => $callback) {
             $matchLen = strlen($match);
-            if($matchLen > $bestMatchLength)
-            {
+            if ($matchLen > $bestMatchLength) {
                 $bestMatchCallback = $callback;
                 $bestMatchLength = $matchLen;
             }
         }
         $response_fromCallback = $bestMatchCallback($request);
 
-        if(is_integer($response_fromCallback))
-        {
-            if($response_fromCallback >= 100 && $response_fromCallback <= 699)
-            {
+        if (is_integer($response_fromCallback)) {
+            if ($response_fromCallback >= 100 && $response_fromCallback <= 699) {
                 $response->status_code = $response_fromCallback;
-            }
-            else
-            {
+            } else {
                 $response->body = strval($response_fromCallback);
             }
-        }
-        else if (is_string($response_fromCallback))
-        {
+        } elseif (is_string($response_fromCallback)) {
             $response->body = $response_fromCallback;
-        }
-        else if ($response_fromCallback instanceof Response)
-        {
+        } elseif ($response_fromCallback instanceof Response) {
             $response = $response_fromCallback;
+        } else {
+            throw new UnexpectedCallbackFunctionReturnValue();
         }
-        else
-            throw new UnexceptedCallbackFuntionReturnValue();
 
-        if($send_response && !$response->isSent())
-        {
+        if ($send_response && !$response->isSent()) {
             $response->send();
         }
 
@@ -204,8 +188,7 @@ class Router
      */
     public function removeHandler(string $method, string $regex = "")
     {
-        if(!$this->existsHandler($method, $regex))
-        {
+        if (!$this->existsHandler($method, $regex)) {
             throw new HandlerNotExistsException("This handler you try to remove are not existed");
         }
 
@@ -230,8 +213,7 @@ class Router
     public function getRouteNum(): int
     {
         $num = 0;
-        foreach ($this->handlers as $handler)
-        {
+        foreach ($this->handlers as $handler) {
             $num += sizeof($handler);
         }
         return $num;
@@ -281,8 +263,7 @@ class Router
      */
     private function addHandler(string $method, string $regex, $callback): void
     {
-        if($this->existsHandler($method, $regex))
-        {
+        if ($this->existsHandler($method, $regex)) {
             throw new HandlerAlreadyExistException("This handler you try to add already existed. \
                                                             Consider remove it before add");
         }
@@ -302,20 +283,15 @@ class Router
     private function removeGetParamFromUrl(string $url): string
     {
         $paramStart = strpos($url, '?');
-        if($paramStart !== false)
-        {
-            $str = substr($url,0,$paramStart);
-            if($str[strlen($str) - 1] == '/' && strlen($str) > 1)
-            {
-                $str = substr($str,0,strlen($str) - 1);
+        if ($paramStart !== false) {
+            $str = substr($url, 0, $paramStart);
+            if ($str[strlen($str) - 1] == '/' && strlen($str) > 1) {
+                $str = substr($str, 0, strlen($str) - 1);
             }
             return $str;
-        }
-        else
-        {
-            if($url[strlen($url) - 1] == '/' && strlen($url) > 1)
-            {
-                $url = substr($url,0,strlen($url) - 1);
+        } else {
+            if ($url[strlen($url) - 1] == '/' && strlen($url) > 1) {
+                $url = substr($url, 0, strlen($url) - 1);
             }
             return $url;
         }
@@ -333,13 +309,12 @@ class Router
      */
     private function removePhpFileFromUrl(string $url, string $file): string
     {
-        if(strlen($url) >= strlen($file) &&
-            substr($url,0,strlen($file)) === $file)
-        {
-            return substr($url,strlen($file));
-        }
-        else
-        {
+        if (
+            strlen($url) >= strlen($file) &&
+            substr($url, 0, strlen($file)) === $file
+        ) {
+            return substr($url, strlen($file));
+        } else {
             return $url;
         }
     }

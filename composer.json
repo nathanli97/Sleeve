@@ -1,5 +1,5 @@
 {
-  "name": "nathanli/simple_router",
+  "name": "nathanli/sleeve",
   "description": "description",
   "minimum-stability": "stable",
   "license": "MIT",
@@ -10,6 +10,7 @@
     }
   ],
   "require": {
+    "php" : ">=7.4"
   },
   "require-dev": {
     "phpunit/phpunit": "^9",
@@ -18,12 +19,12 @@
   },
   "autoload": {
     "psr-4": {
-      "SimpleRouter\\": "Source"
+      "Sleeve\\": "Source"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "SimpleRouter\\Tests\\": "Tests"
+      "Sleeve\\Tests\\": "Tests"
     }
   }
 }
