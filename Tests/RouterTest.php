@@ -12,7 +12,7 @@ use Sleeve\Router;
 
 class RouterTest extends TestCase
 {
-    protected static function getMethodOfClass($cname, $name)
+    protected static function getMethodOfClass($cname, $name): \ReflectionMethod
     {
         $class = new ReflectionClass($cname);
         $method = $class->getMethod($name);

@@ -2,7 +2,7 @@
   "name": "nathanli/sleeve",
   "description": "description",
   "minimum-stability": "stable",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "authors": [
     {
       "name": "nathanli",

@@ -1,5 +1,32 @@
 <?php
 
+/**
+ * Copyright [2022] [nathanli]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file contains ResponseCookies class,
+ * which wrapped the HTTP cookies for HTTP Response.
+ *
+ * PHP Version 7.4
+ *
+ * @category Router
+ * @package  Sleeve
+ * @author   nathanli <xingru97@gmail.com>
+ * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
+ * @link     https://github.com/nathanli/Sleeve
+ */
+
 namespace Sleeve;
 
 use Sleeve\Exceptions\HandlerAlreadyExistException;
@@ -12,7 +39,7 @@ use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValue;
  * This is the main class of this library.
  * @author nathanli <xingru97@gmail.com>
  * @package Sleeve
- * @license MIT
+ * @license Apache2
  */
 class Router
 {
@@ -247,9 +274,10 @@ class Router
     {
         $this->handlers = array();
         $this->handlers['GET'] = array();
+        $this->handlers['CONNECT'] = array();
         $this->handlers['POST'] = array();
         $this->handlers['HEAD'] = array();
-        $this->handlers['OPTION'] = array();
+        $this->handlers['OPTIONS'] = array();
         $this->handlers['PUT'] = array();
         $this->handlers['DELETE'] = array();
     }

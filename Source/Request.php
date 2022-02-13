@@ -29,6 +29,8 @@
 
 namespace Sleeve;
 
+use Sleeve\Exceptions\InvalidEnvironmentException;
+
 /**
  * The HTTP Request wrapper class
  *
@@ -117,7 +119,7 @@ class Request
      * @param string|null $body        HTTP Request Body.
      */
     public function __construct(
-        string $method = 'invalid',
+        string $method = 'GET',
         array $headers = array(),
         array $get_params = array(),
         array $post_params = array(),
@@ -144,9 +146,13 @@ class Request
      * Creates Request from current environment(session)
      *
      * @return Request
+     * @throws InvalidEnvironmentException
      */
     public static function createFromEnvironment(): Request
     {
+        if (!array_key_exists('REQUEST_METHOD', $_SERVER) || !array_key_exists('REQUEST_URI', $_SERVER)) {
+            throw new InvalidEnvironmentException();
+        }
         $request = new Request($_SERVER['REQUEST_METHOD']);
         $request->url = $_SERVER['REQUEST_URI'];
         $request->get_params = $_GET;

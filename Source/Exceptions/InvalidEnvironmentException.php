@@ -30,12 +30,13 @@
 namespace Sleeve\Exceptions;
 
 /**
- * Handler already existed exception
- * This exception will be thrown when add a same handler twice.
+ * Invalid Environment Exception
+ * This exception will be thrown when try to create an HTTP Request but current environment is invalid.
+ * e.g. run from php-cli
  * @author nathanli <xingru97@gmail.com>
  * @package Sleeve
  * @license Apache2
  */
-class HandlerAlreadyExistException extends \RuntimeException
+class InvalidEnvironmentException extends \Exception
 {
 }
