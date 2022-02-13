@@ -31,6 +31,8 @@ namespace Sleeve;
 
 use Sleeve\Exceptions\HandlerAlreadyExistException;
 use Sleeve\Exceptions\HandlerNotExistsException;
+use Sleeve\Exceptions\InvalidEnvironmentException;
+use Sleeve\Exceptions\MethodDisabledException;
 use Sleeve\Exceptions\RespondAlreadySentException;
 use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValue;
 
@@ -53,7 +55,7 @@ class Router
      * Indicates if a response has been sent.
      * @var bool
      */
-    protected bool $sent;
+    protected bool $has_response_sent;
 
     /**
      * The HTTP Error callback functions.
@@ -67,7 +69,7 @@ class Router
     public function __construct()
     {
         $this->initHandlersArray();
-        $this->sent = false;
+        $this->has_response_sent = false;
         $this->http_error_callbacks = array();
     }
 
@@ -106,7 +108,7 @@ class Router
      * @param Response|null $response
      * @param bool $send_response
      * @return Response
-     * @throws RespondAlreadySentException
+     * @throws RespondAlreadySentException|InvalidEnvironmentException
      */
     public function dispatch(Request $request = null, Response &$response = null, bool $send_response = true): Response
     {
@@ -114,15 +116,58 @@ class Router
             $request = Request::createFromEnvironment();
         }
 
+        $request->method = strtoupper($request->method);
+
         if ($response === null) {
             $response = new Response();
         }
 
-        if ($this->sent) {
+        if ($this->has_response_sent) {
             throw new RespondAlreadySentException();
         }
 
-        $pending_matches = $this->handlers[$request->method];
+        if (
+            !in_array($request->method, array(
+                'OPTIONS',
+                'GET',
+                'HEAD',
+                'POST',
+                'PUT',
+                'DELETE',
+                'TRACE',
+                'CONNECT'
+            ))
+        ) {
+            // Unknown HTTP Method, generates 501 Not Implemented Response
+            $response = Response::generateFromStatusCode(501);
+            if (sizeof($this->http_error_callbacks) > 0) {
+                foreach ($this->http_error_callbacks as $callback) {
+                    $response = $callback($request, $response);
+                }
+            }
+            if ($send_response) {
+                $response->send();
+                $this->has_response_sent = $response->isSent();
+            }
+            return $response;
+        }
+        if (!array_key_exists($request->method, $this->handlers)) {
+            // This HTTP Method already disabled.
+            $response = Response::generateFromStatusCode(405);
+
+            if (sizeof($this->http_error_callbacks) > 0) {
+                foreach ($this->http_error_callbacks as $callback) {
+                    $callback($request, $response);
+                }
+            }
+            if ($send_response) {
+                $response->send();
+                $this->has_response_sent = $response->isSent();
+            }
+            return $response;
+        }
+
+        $pending_matches = $this->handlers[strtoupper($request->method)];
 
         $matches = [];
 
@@ -161,13 +206,13 @@ class Router
 
             if (sizeof($this->http_error_callbacks) > 0) {
                 foreach ($this->http_error_callbacks as $callback) {
-                    $callback($request, $response);
+                    $response = $callback($request, $response);
                 }
             }
 
-            if (!$this->sent && $send_response) {
+            if (!$this->has_response_sent && $send_response) {
                 $response->send();
-                $this->sent = true;
+                $this->has_response_sent = true;
             }
             return $response;
         }
@@ -202,7 +247,7 @@ class Router
             $response->send();
         }
 
-        $this->sent = $response->isSent();
+        $this->has_response_sent = $response->isSent();
 
         return $response;
     }
@@ -267,6 +312,22 @@ class Router
     }
 
     /**
+     * Disables the specified HTTP Method
+     * @param string $method The Method Name.
+     * @return void
+     * @throws MethodDisabledException When trying to disable an already disabled HTTP Method, throws this Exception
+     */
+    public function disableMethod(string $method): void
+    {
+        $method = strtoupper($method);
+        if (array_key_exists($method, $this->handlers)) {
+            unset($this->handlers[$method]);
+        } else {
+            throw new MethodDisabledException();
+        }
+    }
+
+    /**
      * Initializes the route handlers.
      * @return void
      */
@@ -280,6 +341,7 @@ class Router
         $this->handlers['OPTIONS'] = array();
         $this->handlers['PUT'] = array();
         $this->handlers['DELETE'] = array();
+        $this->handlers['TRACE'] = array();
     }
 
     /**

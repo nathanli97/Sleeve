@@ -74,18 +74,26 @@ class Response
      */
     public function __construct()
     {
+        $this->clear();
+    }
+
+    /**
+     * Clear out this (old) response to prepare for new response.
+     * @return void
+     */
+    public function clear(): void
+    {
         $this->status_code = 200;
         $this->headers = array();
         $this->cookies = new ResponseCookies();
         $this->sent = false;
         $this->body = '';
     }
-
     /**
      * Send this response
      * @throws RespondAlreadySentException
      */
-    public function send()
+    public function send(): void
     {
         if ($this->sent) {
             throw new RespondAlreadySentException();
@@ -127,7 +135,7 @@ class Response
      * Used for set headers
      * @return void
      */
-    protected function sendHeaders()
+    protected function sendHeaders(): void
     {
         foreach ($this->headers as $key => $value) {
             header("$key: $value");

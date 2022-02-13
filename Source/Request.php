@@ -128,7 +128,7 @@ class Request
         array $files = array(),
         string $body = ''
     ) {
-        $this->method = $method;
+        $this->method = strtoupper($method);
         $this->headers = $headers;
         $this->get_params = $get_params;
         $this->post_params = $post_params;

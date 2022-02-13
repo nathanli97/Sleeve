@@ -29,7 +29,7 @@ class RouterTest extends TestCase
         $router->respond("PUT", "/hello");
         $router->respond("DELETE", "/hello");
         $router->respond("HEAD", "/hello");
-        $router->respond("OPTION", "/hello");
+        $router->respond("OPTIONS", "/hello");
         $router->respond("GET", "/world");
         $router->respond("POST", "/world");
         $router->removeHandler("GET", "/hello");
@@ -194,5 +194,97 @@ class RouterTest extends TestCase
             $targetMethod->invokeArgs($router, array("/www/index.php/hello_world?key=1234",
                 "/www/index.php"))
         );
+    }
+
+    public function testHeadFallbackToGet()
+    {
+        $router = new Router();
+        $router->respond('get', '/get_only', function () {
+            return 'This is GET-ONLY';
+        });
+        $router->respond('head', '/head_only', function () {
+            return 'This is HEAD-ONLY';
+        });
+
+        $request = new Request('get');
+        $request->url = '/get_only';
+        $respond = $router->dispatch($request, $respond, false);
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('This is GET-ONLY', $respond->body);
+
+        $request->method = 'head';
+        $request->url = '/head_only';
+        $respond = $router->dispatch($request, $respond, false);
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('This is HEAD-ONLY', $respond->body);
+
+        $request->url = '/get_only';
+        $respond = $router->dispatch($request, $respond, false);
+        $this->assertEquals(200, $respond->status_code);
+        $this->assertEquals('This is GET-ONLY', $respond->body);
+    }
+
+    public function testUnknownMethodRequest()
+    {
+        $router = new Router();
+        $request = new Request('EMMM');
+        $request->url = '/';
+        $respond = $router->dispatch($request, $respond, false);
+        $this->assertEquals(501, $respond->status_code);
+    }
+
+    public function testHttpErrorCallback()
+    {
+        $callback = function (Request $request, Response $response) {
+            $response->body = 'hey!';
+            return $response;
+        };
+        $router = new Router();
+        $router->onHttpError($callback);
+        $request = new Request('get');
+        $request->url = '/';
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(404, $response->status_code);
+        $this->assertEquals('hey!', $response->body);
+    }
+
+    public function testClearHttpErrorHandlers()
+    {
+        $callback = function (Request $request, Response $response) {
+            $response->body = 'hey!';
+            return $response;
+        };
+        $router = new Router();
+        $router->onHttpError($callback);
+        $request = new Request('get');
+        $request->url = '/';
+        $router->clearHttpErrorHandlers();
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(404, $response->status_code);
+        $this->assertEquals('', $response->body);
+    }
+
+    public function testDisableMethod()
+    {
+        $router = new Router();
+        $router->disableMethod('get');
+        $request = new Request('get');
+        $request->url = '/';
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(405, $response->status_code);
+
+        $request->method = 'post';
+        $request->url = '/';
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(404, $response->status_code);
+
+        $router->respond('post', '/', function () {
+            return 'post';
+        });
+
+        $response->clear();
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(200, $response->status_code);
+        $this->assertEquals('post', $response->body);
     }
 }
