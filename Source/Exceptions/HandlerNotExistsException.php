@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * This file contains ResponseCookies class,
- * which wrapped the HTTP cookies for HTTP Response.
  *
  * PHP Version 7.4
  *

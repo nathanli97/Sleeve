@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  * PHP Version 7.4
  *
  * @category Router
@@ -25,15 +24,26 @@
  * @link     https://github.com/nathanli/Sleeve
  */
 
-namespace Sleeve\Exceptions;
+namespace Sleeve\Traits;
 
-/**
- * Handler already existed exception
- * This exception will be thrown when add a same handler twice.
- * @author nathanli <xingru97@gmail.com>
- * @package Sleeve
- * @license Apache2
- */
-class HandlerAlreadyExistException extends \RuntimeException
+trait Filter
 {
+    protected array $filters_beforeRouting;
+    protected array $filters_afterRouting;
+
+    public function addFilterBeforeRouting($callback)
+    {
+        $this->filters_beforeRouting[] = $callback;
+    }
+
+    public function addFilterAfterRouting($callback)
+    {
+        $this->filters_afterRouting[] = $callback;
+    }
+
+    private function initFilters()
+    {
+        $this->filters_beforeRouting = array();
+        $this->filters_afterRouting = array();
+    }
 }

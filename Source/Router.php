@@ -15,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * This file contains ResponseCookies class,
- * which wrapped the HTTP cookies for HTTP Response.
+ *
  *
  * PHP Version 7.4
  *
@@ -34,7 +33,8 @@ use Sleeve\Exceptions\HandlerNotExistsException;
 use Sleeve\Exceptions\InvalidEnvironmentException;
 use Sleeve\Exceptions\MethodDisabledException;
 use Sleeve\Exceptions\RespondAlreadySentException;
-use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValue;
+use Sleeve\Traits\Callback;
+use Sleeve\Traits\Filter;
 
 /**
  * The Router class.
@@ -45,6 +45,8 @@ use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValue;
  */
 class Router
 {
+    use Callback;
+    use Filter;
     /**
      * The route handlers.
      * @var array
@@ -58,19 +60,13 @@ class Router
     protected bool $has_response_sent;
 
     /**
-     * The HTTP Error callback functions.
-     * @var array
-     */
-    protected array $http_error_callbacks;
-
-    /**
      * Constructor.
      */
     public function __construct()
     {
         $this->initHandlersArray();
+        $this->initCallbacks();
         $this->has_response_sent = false;
-        $this->http_error_callbacks = array();
     }
 
     /**
@@ -140,11 +136,14 @@ class Router
         ) {
             // Unknown HTTP Method, generates 501 Not Implemented Response
             $response = Response::generateFromStatusCode(501);
-            if (sizeof($this->http_error_callbacks) > 0) {
-                foreach ($this->http_error_callbacks as $callback) {
-                    $response = $callback($request, $response);
-                }
-            }
+            $response = $this->processCallbackReturnValue(
+                $this->callCallback($this->unimplemented_method_access_callbacks, array($request, $response)),
+                $response
+            );
+            $response = $this->processCallbackReturnValue(
+                $this->callCallback($this->http_error_callbacks, array($request, $response)),
+                $response
+            );
             if ($send_response) {
                 $response->send();
                 $this->has_response_sent = $response->isSent();
@@ -154,12 +153,14 @@ class Router
         if (!array_key_exists($request->method, $this->handlers)) {
             // This HTTP Method already disabled.
             $response = Response::generateFromStatusCode(405);
-
-            if (sizeof($this->http_error_callbacks) > 0) {
-                foreach ($this->http_error_callbacks as $callback) {
-                    $callback($request, $response);
-                }
-            }
+            $response = $this->processCallbackReturnValue(
+                $this->callCallback($this->disabled_method_access_callbacks, array($request, $response)),
+                $response
+            );
+            $response = $this->processCallbackReturnValue(
+                $this->callCallback($this->http_error_callbacks, array($request, $response)),
+                $response
+            );
             if ($send_response) {
                 $response->send();
                 $this->has_response_sent = $response->isSent();
@@ -229,19 +230,7 @@ class Router
         }
         $response_fromCallback = $bestMatchCallback($request);
 
-        if (is_integer($response_fromCallback)) {
-            if ($response_fromCallback >= 100 && $response_fromCallback <= 699) {
-                $response->status_code = $response_fromCallback;
-            } else {
-                $response->body = strval($response_fromCallback);
-            }
-        } elseif (is_string($response_fromCallback)) {
-            $response->body = $response_fromCallback;
-        } elseif ($response_fromCallback instanceof Response) {
-            $response = $response_fromCallback;
-        } else {
-            throw new UnexpectedCallbackFunctionReturnValue();
-        }
+        $response = $this->processCallbackReturnValue($response_fromCallback, $response);
 
         if ($send_response && !$response->isSent()) {
             $response->send();
@@ -289,26 +278,6 @@ class Router
             $num += sizeof($handler);
         }
         return $num;
-    }
-
-    /**
-     * Add callback function for Http Error Handler.
-     * When the router encounters HTTP Error, This Handler will be called.
-     * @param $callback
-     * @return void
-     */
-    public function onHttpError($callback)
-    {
-        $this->http_error_callbacks[] = $callback;
-    }
-
-    /**
-     * Clear all HTTP Error callback function
-     * @return void
-     */
-    public function clearHttpErrorHandlers(): void
-    {
-        $this->http_error_callbacks = array();
     }
 
     /**

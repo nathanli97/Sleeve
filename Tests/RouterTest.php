@@ -229,8 +229,17 @@ class RouterTest extends TestCase
         $router = new Router();
         $request = new Request('EMMM');
         $request->url = '/';
+        $router->onUnimplementedMethod(function ($request, Response $response) {
+            $response->body = 'This method is unimplemented';
+            return $response;
+        });
+        $router->onDisabledMethod(function ($request, Response $response) {
+            $response->body = 'This method is disabled';
+            return $response;
+        });
         $respond = $router->dispatch($request, $respond, false);
         $this->assertEquals(501, $respond->status_code);
+        $this->assertEquals('This method is unimplemented', $respond->body);
     }
 
     public function testHttpErrorCallback()
@@ -258,7 +267,7 @@ class RouterTest extends TestCase
         $router->onHttpError($callback);
         $request = new Request('get');
         $request->url = '/';
-        $router->clearHttpErrorHandlers();
+        $router->clearHttpErrorCallbacks();
         $response = $router->dispatch($request, $response, false);
         $this->assertEquals(404, $response->status_code);
         $this->assertEquals('', $response->body);
@@ -267,11 +276,22 @@ class RouterTest extends TestCase
     public function testDisableMethod()
     {
         $router = new Router();
+
+        $router->onUnimplementedMethod(function ($request, Response $response) {
+            $response->body = 'This method is unimplemented';
+            return $response;
+        });
+        $router->onDisabledMethod(function ($request, Response $response) {
+            $response->body = 'This method is disabled';
+            return $response;
+        });
+
         $router->disableMethod('get');
         $request = new Request('get');
         $request->url = '/';
         $response = $router->dispatch($request, $response, false);
         $this->assertEquals(405, $response->status_code);
+        $this->assertEquals('This method is disabled', $response->body);
 
         $request->method = 'post';
         $request->url = '/';
