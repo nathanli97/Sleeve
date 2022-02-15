@@ -33,8 +33,8 @@ use Sleeve\Exceptions\HandlerNotExistsException;
 use Sleeve\Exceptions\InvalidEnvironmentException;
 use Sleeve\Exceptions\MethodDisabledException;
 use Sleeve\Exceptions\RespondAlreadySentException;
+use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValueException;
 use Sleeve\Traits\Callback;
-use Sleeve\Traits\Filter;
 
 /**
  * The Router class.
@@ -46,7 +46,7 @@ use Sleeve\Traits\Filter;
 class Router
 {
     use Callback;
-    use Filter;
+
     /**
      * The route handlers.
      * @var array

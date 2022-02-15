@@ -33,6 +33,6 @@ namespace Sleeve\Exceptions;
  * @package Sleeve
  * @license Apache2
  */
-class UnexpectedCallbackFunctionReturnValue extends \RuntimeException
+class UnexpectedCallbackFunctionReturnValueException extends \RuntimeException
 {
 }

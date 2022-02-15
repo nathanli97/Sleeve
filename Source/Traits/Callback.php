@@ -26,7 +26,7 @@
 
 namespace Sleeve\Traits;
 
-use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValue;
+use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValueException;
 use Sleeve\Response;
 
 /**
@@ -155,7 +155,7 @@ trait Callback
         } elseif (is_null($returnVal)) {
             return $response;
         } else {
-            throw new UnexpectedCallbackFunctionReturnValue();
+            throw new UnexpectedCallbackFunctionReturnValueException();
         }
         return $response;
     }
