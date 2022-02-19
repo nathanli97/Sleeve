@@ -19,7 +19,7 @@
  *
  * PHP Version 7.4
  *
- * @category Router
+ * @category SleeveRouter
  * @package  Sleeve
  * @author   nathanli <xingru97@gmail.com>
  * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -33,17 +33,16 @@ use Sleeve\Exceptions\HandlerNotExistsException;
 use Sleeve\Exceptions\InvalidEnvironmentException;
 use Sleeve\Exceptions\MethodDisabledException;
 use Sleeve\Exceptions\RespondAlreadySentException;
-use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValueException;
 use Sleeve\Traits\Callback;
 
 /**
- * The Router class.
+ * The SleeveRouter class.
  * This is the main class of this library.
  * @author nathanli <xingru97@gmail.com>
  * @package Sleeve
  * @license Apache2
  */
-class Router
+class SleeveRouter
 {
     use Callback;
 
@@ -70,9 +69,48 @@ class Router
     }
 
     /**
+     * Method handlers
+     * @param string $regex
+     * @param $callback
+     * @return void
+     */
+    public function get(string $regex = "", $callback = null)
+    {
+        $this->respond('get', $regex, $callback);
+    }
+    public function options(string $regex = "", $callback = null)
+    {
+        $this->respond('options', $regex, $callback);
+    }
+    public function post(string $regex = "", $callback = null)
+    {
+        $this->respond('post', $regex, $callback);
+    }
+    public function head(string $regex = "", $callback = null)
+    {
+        $this->respond('head', $regex, $callback);
+    }
+    public function put(string $regex = "", $callback = null)
+    {
+        $this->respond('put', $regex, $callback);
+    }
+    public function delete(string $regex = "", $callback = null)
+    {
+        $this->respond('delete', $regex, $callback);
+    }
+    public function trace(string $regex = "", $callback = null)
+    {
+        $this->respond('trace', $regex, $callback);
+    }
+    public function connect(string $regex = "", $callback = null)
+    {
+        $this->respond('connect', $regex, $callback);
+    }
+
+    /**
      * Add a handler(route) to respond message when receive a http request.
      * For example, Add a route for GET request '/' :
-     * $router = new Router();
+     * $router = new SleeveRouter();
      * $router->respond('get', '/', function(){return 'hello-world';}); // With HTTP 200 OK.
      *
      * The callback function can return the following types:
@@ -138,11 +176,11 @@ class Router
             $response = Response::generateFromStatusCode(501);
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->unimplemented_method_access_callbacks, array($request, $response)),
-                $response
+                $request, $response
             );
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->http_error_callbacks, array($request, $response)),
-                $response
+                $request, $response
             );
             if ($send_response) {
                 $response->send();
@@ -155,11 +193,11 @@ class Router
             $response = Response::generateFromStatusCode(405);
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->disabled_method_access_callbacks, array($request, $response)),
-                $response
+                $request, $response
             );
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->http_error_callbacks, array($request, $response)),
-                $response
+                $request, $response
             );
             if ($send_response) {
                 $response->send();
@@ -178,9 +216,10 @@ class Router
                 $url_without_get_params,
                 $request->server['SCRIPT_NAME']
             );
-            if (strlen($url_without_get_params) == 0) {
-                $url_without_get_params = '/';
-            }
+            $url_without_get_params = $this->removeSubDirFromUrl(
+                $url_without_get_params,
+                $request->server['SCRIPT_NAME']
+            );
         }
         foreach ($pending_matches as $regex => $callback) {
             if (
@@ -207,7 +246,7 @@ class Router
 
             if (sizeof($this->http_error_callbacks) > 0) {
                 foreach ($this->http_error_callbacks as $callback) {
-                    $response = $callback($request, $response);
+                    $response = $response = $this->processCallbackReturnValue($callback($request, $response), $request, $response);
                 }
             }
 
@@ -228,9 +267,9 @@ class Router
                 $bestMatchLength = $matchLen;
             }
         }
-        $response_fromCallback = $bestMatchCallback($request);
+        $response_fromCallback = $bestMatchCallback($request, $response);
 
-        $response = $this->processCallbackReturnValue($response_fromCallback, $response);
+        $response = $this->processCallbackReturnValue($response_fromCallback, $request, $response);
 
         if ($send_response && !$response->isSent()) {
             $response->send();
@@ -372,9 +411,35 @@ class Router
             strlen($url) >= strlen($file) &&
             substr($url, 0, strlen($file)) === $file
         ) {
-            return substr($url, strlen($file));
-        } else {
-            return $url;
+            $url = substr($url, strlen($file));
         }
+
+        if (strlen($url) == 0) {
+            $url = '/';
+        }
+        return $url;
+    }
+    /**
+     * Removes sub dir from url.
+     * For example:
+     * INDEX PHP FILE($file): /abc/def/public/index.php
+     * REQUEST URL($url): /abc/def/public/version
+     * FUNCTION RETURNS: /version
+     * @param string $url
+     * @param string $file
+     * @return string
+     */
+    private function removeSubDirFromUrl(string $url, string $file): string
+    {
+        $fileLength = strlen($file);
+        if($fileLength >= 4 && substr($file, $fileLength - 4) == '.php')
+        {
+            $file = preg_replace('~/[^/]*.php$~', "", $file);
+        }
+        $url = preg_replace("~$file~", "", $url);
+        if (strlen($url) == 0) {
+            $url = '/';
+        }
+        return $url;
     }
 }

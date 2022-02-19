@@ -17,7 +17,7 @@
  *
  * PHP Version 7.4
  *
- * @category Router
+ * @category SleeveRouter
  * @package  Sleeve
  * @author   nathanli <xingru97@gmail.com>
  * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -27,6 +27,7 @@
 namespace Sleeve\Traits;
 
 use Sleeve\Exceptions\UnexpectedCallbackFunctionReturnValueException;
+use Sleeve\Request;
 use Sleeve\Response;
 
 /**
@@ -67,6 +68,11 @@ trait Callback
      * @return void
      */
     public function onHttpError($callback)
+    {
+        $this->http_error_callbacks[] = $callback;
+    }
+
+    public function onHttpCode(int $code, $callback)
     {
         $this->http_error_callbacks[] = $callback;
     }
@@ -137,10 +143,11 @@ trait Callback
     /**
      * Process the value return by user's callback.
      * @param $returnVal
+     * @param Request $request
      * @param Response $response
      * @return Response
      */
-    private function processCallbackReturnValue($returnVal, Response $response): Response
+    private function processCallbackReturnValue($returnVal, Request $request, Response $response): Response
     {
         if (is_integer($returnVal)) {
             if ($returnVal >= 100 && $returnVal <= 699) {
@@ -156,6 +163,11 @@ trait Callback
             return $response;
         } else {
             throw new UnexpectedCallbackFunctionReturnValueException();
+        }
+
+        if($response->status_code >= 400)
+        {
+            $this->callCallback($this->http_error_callbacks, array($request, $response));
         }
         return $response;
     }

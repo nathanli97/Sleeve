@@ -1,8 +1,10 @@
 {
   "name": "nathanli/sleeve",
-  "description": "description",
+  "description": "A simple PHP Router",
+  "keywords": ["router", "routing"],
   "minimum-stability": "stable",
   "license": "Apache-2.0",
+  "type": "library",
   "authors": [
     {
       "name": "nathanli",
@@ -27,5 +29,8 @@
     "psr-4": {
       "Sleeve\\Tests\\": "Tests"
     }
+  },
+  "scripts": {
+    "test": "./vendor/bin/phpunit --colors=always"
   }
 }

@@ -4,11 +4,11 @@ namespace Benchmark;
 
 use Sleeve\Request;
 use Sleeve\Response;
-use Sleeve\Router;
+use Sleeve\SleeveRouter;
 
 class RoutingBenchmark
 {
-    protected Router $router;
+    protected SleeveRouter $router;
     private Request $request;
     /**
      * @var string[]
@@ -19,7 +19,7 @@ class RoutingBenchmark
     public function __construct()
     {
         $this->i = 0;
-        $this->router = new Router();
+        $this->router = new SleeveRouter();
         $this->requests = array(
             '/',
             '/test/520-555-5542',

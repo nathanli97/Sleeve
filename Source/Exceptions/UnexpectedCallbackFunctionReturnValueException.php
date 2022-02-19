@@ -18,7 +18,7 @@
  *
  * PHP Version 7.4
  *
- * @category Router
+ * @category SleeveRouter
  * @package  Sleeve
  * @author   nathanli <xingru97@gmail.com>
  * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0

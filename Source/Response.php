@@ -18,7 +18,7 @@
  *
  * PHP Version 7.4
  *
- * @category Router
+ * @category SleeveRouter
  * @package  Sleeve
  * @author   nathanli <xingru97@gmail.com>
  * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -69,12 +69,24 @@ class Response
 
     /**
      * The constructor.
+     * @param code the http status code, Default is 200
      */
-    public function __construct()
+    public function __construct($code = 200, $body = '')
     {
         $this->clear();
+        $this->status_code = $code;
+        $this->body = $body;
     }
 
+    /**
+     * Set redirect to new url header
+     * @param $url
+     * @return void
+     */
+    public function setRedirect($url)
+    {
+        $this->headers['Location'] = $url;
+    }
     /**
      * Clear out this (old) response to prepare for new response.
      * @return void

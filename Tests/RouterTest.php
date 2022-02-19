@@ -8,7 +8,7 @@ use Sleeve\Exceptions\HandlerAlreadyExistException;
 use Sleeve\Exceptions\RespondAlreadySentException;
 use Sleeve\Request;
 use Sleeve\Response;
-use Sleeve\Router;
+use Sleeve\SleeveRouter;
 
 class RouterTest extends TestCase
 {
@@ -22,7 +22,7 @@ class RouterTest extends TestCase
 
     public function testAddRemoveHandler()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->respond("GET");
         $router->respond("GET", "/hello");
         $router->respond("POST", "/hello");
@@ -39,7 +39,7 @@ class RouterTest extends TestCase
     public function testAddHandlerTwice()
     {
         $this->expectException(HandlerAlreadyExistException::class);
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->respond("GET");
         $router->respond("GET", "/hello");
         $router->respond("GET", "/hello");
@@ -53,7 +53,7 @@ class RouterTest extends TestCase
         $this->expectNotToPerformAssertions();
 
         $response = new Response();
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->dispatch();
     }
 
@@ -64,7 +64,7 @@ class RouterTest extends TestCase
 
         $this->expectException(RespondAlreadySentException::class);
 
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->dispatch(null, $response);
         $router->dispatch(null, $response);
     }
@@ -76,15 +76,15 @@ class RouterTest extends TestCase
 
         $this->expectException(RespondAlreadySentException::class);
 
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->dispatch();
         $router->dispatch();
     }
 
     public function testRemoveGetParamFromUrl()
     {
-        $router = new Router();
-        $targetMethod = self::getMethodOfClass('Sleeve\Router', 'removeGetParamFromUrl');
+        $router = new SleeveRouter();
+        $targetMethod = self::getMethodOfClass('Sleeve\SleeveRouter', 'removeGetParamFromUrl');
         $this->assertEquals(
             '/www/index.php/hello_world',
             $targetMethod->invokeArgs($router, array("/www/index.php/hello_world?key=1234"))
@@ -93,7 +93,7 @@ class RouterTest extends TestCase
 
     public function testAccess404()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $respond = $router->dispatch(null, $respond, false);
 
         $this->assertEquals(404, $respond->status_code);
@@ -101,7 +101,7 @@ class RouterTest extends TestCase
 
     public function testAccess404Sent()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $respond = $router->dispatch(null, $respond);
 
         $this->assertEquals(404, $respond->status_code);
@@ -110,7 +110,7 @@ class RouterTest extends TestCase
 
     public function testAccessIndex()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->respond('GET', '/', function () {
             return 'hello, world!';
         });
@@ -124,7 +124,7 @@ class RouterTest extends TestCase
 
     public function testAccessPageFromDifferentHandler()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->respond('GET', '/', function () {
             return 'hello, world!';
         });
@@ -187,8 +187,8 @@ class RouterTest extends TestCase
 
     public function testRemovePhpFileFromUrl()
     {
-        $router = new Router();
-        $targetMethod = self::getMethodOfClass('Sleeve\Router', 'RemovePhpFileFromUrl');
+        $router = new SleeveRouter();
+        $targetMethod = self::getMethodOfClass('Sleeve\SleeveRouter', 'RemovePhpFileFromUrl');
         $this->assertEquals(
             '/hello_world?key=1234',
             $targetMethod->invokeArgs($router, array("/www/index.php/hello_world?key=1234",
@@ -198,7 +198,7 @@ class RouterTest extends TestCase
 
     public function testHeadFallbackToGet()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->respond('get', '/get_only', function () {
             return 'This is GET-ONLY';
         });
@@ -226,7 +226,7 @@ class RouterTest extends TestCase
 
     public function testUnknownMethodRequest()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
         $request = new Request('EMMM');
         $request->url = '/';
         $router->onUnimplementedMethod(function ($request, Response $response) {
@@ -248,7 +248,7 @@ class RouterTest extends TestCase
             $response->body = 'hey!';
             return $response;
         };
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->onHttpError($callback);
         $request = new Request('get');
         $request->url = '/';
@@ -263,7 +263,7 @@ class RouterTest extends TestCase
             $response->body = 'hey!';
             return $response;
         };
-        $router = new Router();
+        $router = new SleeveRouter();
         $router->onHttpError($callback);
         $request = new Request('get');
         $request->url = '/';
@@ -275,7 +275,7 @@ class RouterTest extends TestCase
 
     public function testDisableMethod()
     {
-        $router = new Router();
+        $router = new SleeveRouter();
 
         $router->onUnimplementedMethod(function ($request, Response $response) {
             $response->body = 'This method is unimplemented';
@@ -306,5 +306,19 @@ class RouterTest extends TestCase
         $response = $router->dispatch($request, $response, false);
         $this->assertEquals(200, $response->status_code);
         $this->assertEquals('post', $response->body);
+    }
+
+    public function testSubdirRouting()
+    {
+        $router = new SleeveRouter();
+        $request = new Request('get');
+        $request->url = '/abc/def/public/version';
+        $request->server['SCRIPT_NAME'] = '/abc/def/public/index.php';
+        $router->get('/version', function(Request $request, Response $response){
+            return 'version!';
+        });
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(200, $response->status_code);
+        $this->assertEquals('version!', $response->body);
     }
 }

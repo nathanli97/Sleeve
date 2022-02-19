@@ -18,7 +18,7 @@
  *
  * PHP Version 7.4
  *
- * @category Router
+ * @category SleeveRouter
  * @package  Sleeve
  * @author   nathanli <xingru97@gmail.com>
  * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -30,7 +30,7 @@ namespace Sleeve;
 /**
  * The response cookies wrapper class
  *
- * @category Router
+ * @category SleeveRouter
  * @package  Sleeve
  * @author   nathanli <xingru97@gmail.com>
  * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -50,7 +50,7 @@ class ResponseCookies
     /**
      * The constructor.
      *
-     * @category Router
+     * @category SleeveRouter
      * @package  Sleeve
      * @author   nathanli <xingru97@gmail.com>
      * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -80,7 +80,7 @@ class ResponseCookies
      *
      * @return void
      *
-     * @category Router
+     * @category SleeveRouter
      * @package  Sleeve
      * @author   nathanli <xingru97@gmail.com>
      * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -109,7 +109,7 @@ class ResponseCookies
      *
      * @return void
      *
-     * @category Router
+     * @category SleeveRouter
      * @package  Sleeve
      * @author   nathanli <xingru97@gmail.com>
      * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
@@ -136,7 +136,7 @@ class ResponseCookies
      *
      * @return bool Is the cookie set has cookies?
      *
-     * @category Router
+     * @category SleeveRouter
      * @package  Sleeve
      * @author   nathanli <xingru97@gmail.com>
      * @license  Apache2 http://www.apache.org/licenses/LICENSE-2.0
