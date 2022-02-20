@@ -31,6 +31,8 @@
     }
   },
   "scripts": {
-    "test": "./vendor/bin/phpunit --colors=always"
+    "test": "./vendor/bin/phpunit --colors=always Tests/",
+    "phpbench" : "./vendor/bin/phpbench run Tests/Benchmark --report=default",
+    "phpcs": "./vendor/bin/phpcs --standard=PSR12 Source/ Tests/"
   }
 }

@@ -1,12 +1,11 @@
 <?php
 
-namespace Benchmark;
+namespace Sleeve\Tests\Benchmark;
 
 use Sleeve\Request;
-use Sleeve\Response;
 use Sleeve\SleeveRouter;
 
-class RoutingBenchmark
+class RoutingBench
 {
     protected SleeveRouter $router;
     private Request $request;
@@ -38,28 +37,35 @@ class RoutingBenchmark
         $this->router->respond('get', '/\d+', function (Request $request) {
             return 'GET /';
         });
-        $this->router->respond('get', '/test/(?:1(?:[. -])?)?(?:\((?=\d{3}\)))?([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?(\d{4})(?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
+        $this->router->respond('get', '/test/(?:1(?:[. -])?)?(?:\((?=\d{3}\)))?
+        ([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?(\d{4})(?: 
+        (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
             return 'GET /test';
         });
         $this->router->respond('get', '/get_user/aka/info', function (Request $request) {
             return 'GET /get_user/aka/info';
         });
-        $this->router->respond('get', '/system/power_management_s(?:1(?:[. -])?)?(?:\((?=\d{3}\)))?([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?(\d{4})(?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
+        $this->router->respond('get', '/system/power_management_s(?:1(?:[. -])?)?
+        (?:\((?=\d{3}\)))?([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?
+        (\d{4})(?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
             return 'GET /system/power_management';
         });
         $this->router->respond('post', '/abc\d+', function (Request $request) {
             return 'GET /';
         });
-        $this->router->respond('get', '/ttest(?:1(?:[. -])?)?(?:\((?=\d{3}\)))?([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?(\d{4})(?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
+        $this->router->respond('get', '/ttest(?:1(?:[. -])?)?(?:\((?=\d{3}\)))?
+        ([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?(\d{4})
+        (?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
             return 'GET /test';
         });
-        $this->router->respond('get', '/get_user/aka/info(?:1(?:[. -])?)?(?:\((?=\d{3}\)))?([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})[. -]?(\d{4})(?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
+        $this->router->respond('get', '/get_user/aka/info(?:1(?:[. -])?)?
+        (?:\((?=\d{3}\)))?([2-9]\d{2})(?:(?<=\(\d{3})\))? ?(?:(?<=\d{3})[.-])?([2-9]\d{2})
+        [. -]?(\d{4})(?: (?i:ext)\.? ?(\d{1,5}))?', function (Request $request) {
             return 'GET /get_user/aka/info';
         });
         $this->router->respond('head', '/system/power_management/\d?', function (Request $request) {
             return 'GET /system/power_management';
         });
-
     }
     /**
      * @Revs(3000)
@@ -67,8 +73,9 @@ class RoutingBenchmark
     public function benchRouting()
     {
         $this->request->url = $this->requests[$this->i++];
-        $this->router->dispatch($this->request,$response, false);
-        if($this->i == 12)
+        $this->router->dispatch($this->request, $response, false);
+        if ($this->i == 12) {
             $this->i = 0;
+        }
     }
 }

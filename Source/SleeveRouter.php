@@ -176,11 +176,13 @@ class SleeveRouter
             $response = Response::generateFromStatusCode(501);
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->unimplemented_method_access_callbacks, array($request, $response)),
-                $request, $response
+                $request,
+                $response
             );
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->http_error_callbacks, array($request, $response)),
-                $request, $response
+                $request,
+                $response
             );
             if ($send_response) {
                 $response->send();
@@ -193,11 +195,13 @@ class SleeveRouter
             $response = Response::generateFromStatusCode(405);
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->disabled_method_access_callbacks, array($request, $response)),
-                $request, $response
+                $request,
+                $response
             );
             $response = $this->processCallbackReturnValue(
                 $this->callCallback($this->http_error_callbacks, array($request, $response)),
-                $request, $response
+                $request,
+                $response
             );
             if ($send_response) {
                 $response->send();
@@ -246,7 +250,11 @@ class SleeveRouter
 
             if (sizeof($this->http_error_callbacks) > 0) {
                 foreach ($this->http_error_callbacks as $callback) {
-                    $response = $response = $this->processCallbackReturnValue($callback($request, $response), $request, $response);
+                    $response = $response = $this->processCallbackReturnValue(
+                        $callback($request, $response),
+                        $request,
+                        $response
+                    );
                 }
             }
 
@@ -432,8 +440,7 @@ class SleeveRouter
     private function removeSubDirFromUrl(string $url, string $file): string
     {
         $fileLength = strlen($file);
-        if($fileLength >= 4 && substr($file, $fileLength - 4) == '.php')
-        {
+        if ($fileLength >= 4 && substr($file, $fileLength - 4) == '.php') {
             $file = preg_replace('~/[^/]*.php$~', "", $file);
         }
         $url = preg_replace("~$file~", "", $url);

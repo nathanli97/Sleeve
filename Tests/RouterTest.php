@@ -314,7 +314,7 @@ class RouterTest extends TestCase
         $request = new Request('get');
         $request->url = '/abc/def/public/version';
         $request->server['SCRIPT_NAME'] = '/abc/def/public/index.php';
-        $router->get('/version', function(Request $request, Response $response){
+        $router->get('/version', function (Request $request, Response $response) {
             return 'version!';
         });
         $response = $router->dispatch($request, $response, false);

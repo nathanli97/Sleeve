@@ -72,11 +72,6 @@ trait Callback
         $this->http_error_callbacks[] = $callback;
     }
 
-    public function onHttpCode(int $code, $callback)
-    {
-        $this->http_error_callbacks[] = $callback;
-    }
-
     /**
      * Add a callback which will be called when trying to access a disabled HTTP Method.
      * Callback prototype: function your_callback(Request $request, Response $response): Response
@@ -165,8 +160,7 @@ trait Callback
             throw new UnexpectedCallbackFunctionReturnValueException();
         }
 
-        if($response->status_code >= 400)
-        {
+        if ($response->status_code >= 400) {
             $this->callCallback($this->http_error_callbacks, array($request, $response));
         }
         return $response;
