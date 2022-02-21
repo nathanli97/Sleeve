@@ -27,12 +27,14 @@
 
 namespace Sleeve\Exceptions;
 
+use Exception;
+
 /**
  * Respond already sent Exception
  * @author nathanli <xingru97@gmail.com>
  * @package Sleeve
  * @license Apache2
  */
-class RespondAlreadySentException extends \Exception
+class RespondAlreadySentException extends Exception
 {
 }

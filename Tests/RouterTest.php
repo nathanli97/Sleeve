@@ -4,15 +4,29 @@ namespace Sleeve\Tests;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 use Sleeve\Exceptions\HandlerAlreadyExistException;
+use Sleeve\Exceptions\InvalidEnvironmentException;
+use Sleeve\Exceptions\MethodDisabledException;
 use Sleeve\Exceptions\RespondAlreadySentException;
 use Sleeve\Request;
 use Sleeve\Response;
 use Sleeve\SleeveRouter;
 
+/**
+ * The tests of class SleeveRouter
+ */
 class RouterTest extends TestCase
 {
-    protected static function getMethodOfClass($cname, $name): \ReflectionMethod
+    /**
+     * Returns the method of given class. Used for testing private and protected functions.
+     * @param string $cname The class name
+     * @param string $name  The method name
+     * @return ReflectionMethod
+     * @throws ReflectionException
+     */
+    protected static function getMethodOfClass(string $cname, string $name): ReflectionMethod
     {
         $class = new ReflectionClass($cname);
         $method = $class->getMethod($name);
@@ -20,6 +34,10 @@ class RouterTest extends TestCase
         return $method;
     }
 
+    /**
+     * Test if the router can add and remove handler normally.
+     * @return void
+     */
     public function testAddRemoveHandler()
     {
         $router = new SleeveRouter();
@@ -36,6 +54,11 @@ class RouterTest extends TestCase
         $router->respond("GET", "/hello");
         $this->assertEquals(9, $router->getRouteNum());
     }
+
+    /**
+     * Test if the router can not add the same handler twice.
+     * @return void
+     */
     public function testAddHandlerTwice()
     {
         $this->expectException(HandlerAlreadyExistException::class);
@@ -45,18 +68,29 @@ class RouterTest extends TestCase
         $router->respond("GET", "/hello");
     }
 
+    /**
+     * Tests the router can be accessed with an unknown URL, and no exception reported.
+     * @return void
+     * @throws RespondAlreadySentException
+     * @throws InvalidEnvironmentException
+     */
     public function testFakeAccess()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/fake_access';
 
-        $this->expectNotToPerformAssertions();
-
-        $response = new Response();
         $router = new SleeveRouter();
-        $router->dispatch();
+        $respond = $router->dispatch();
+        $this->assertEquals(404, $respond->status_code);
+        $this->assertEquals(true, $respond->isSent());
     }
 
+    /**
+     * Test if the router can not dispatch twice.
+     * @return void
+     * @throws RespondAlreadySentException
+     * @throws InvalidEnvironmentException
+     */
     public function testDispatchTwice()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -69,6 +103,12 @@ class RouterTest extends TestCase
         $router->dispatch(null, $response);
     }
 
+    /**
+     * Test if the router can not dispatch twice.
+     * @return void
+     * @throws RespondAlreadySentException
+     * @throws InvalidEnvironmentException
+     */
     public function testDispatchTwiceGlobal()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -81,7 +121,12 @@ class RouterTest extends TestCase
         $router->dispatch();
     }
 
-    public function testRemoveGetParamFromUrl()
+    /**
+     * Tests if router can remove GET param from given URL
+     * @return void
+     * @throws ReflectionException
+     */
+    public function testRemoveGetParamFromUrl(): void
     {
         $router = new SleeveRouter();
         $targetMethod = self::getMethodOfClass('Sleeve\SleeveRouter', 'removeGetParamFromUrl');
@@ -91,24 +136,29 @@ class RouterTest extends TestCase
         );
     }
 
-    public function testAccess404()
+    /**
+     * Tests the router can remove php file from given URL
+     * @return void
+     * @throws ReflectionException
+     */
+    public function testRemovePhpFileFromUrl()
     {
         $router = new SleeveRouter();
-        $respond = $router->dispatch(null, $respond, false);
-
-        $this->assertEquals(404, $respond->status_code);
+        $targetMethod = self::getMethodOfClass('Sleeve\SleeveRouter', 'RemovePhpFileFromUrl');
+        $this->assertEquals(
+            '/hello_world?key=1234',
+            $targetMethod->invokeArgs($router, array("/www/index.php/hello_world?key=1234",
+                "/www/index.php"))
+        );
     }
 
-    public function testAccess404Sent()
-    {
-        $router = new SleeveRouter();
-        $respond = $router->dispatch(null, $respond);
-
-        $this->assertEquals(404, $respond->status_code);
-        $this->assertEquals(true, $respond->isSent());
-    }
-
-    public function testAccessIndex()
+    /**
+     * Tests if the router can access root URL
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
+    public function testAccessRoot()
     {
         $router = new SleeveRouter();
         $router->respond('GET', '/', function () {
@@ -122,6 +172,12 @@ class RouterTest extends TestCase
         $this->assertEquals('hello, world!', $respond->body);
     }
 
+    /**
+     * Tests if the router can be accessed with difference URL
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
     public function testAccessPageFromDifferentHandler()
     {
         $router = new SleeveRouter();
@@ -185,17 +241,12 @@ class RouterTest extends TestCase
         $this->assertEquals('test4', $respond->body);
     }
 
-    public function testRemovePhpFileFromUrl()
-    {
-        $router = new SleeveRouter();
-        $targetMethod = self::getMethodOfClass('Sleeve\SleeveRouter', 'RemovePhpFileFromUrl');
-        $this->assertEquals(
-            '/hello_world?key=1234',
-            $targetMethod->invokeArgs($router, array("/www/index.php/hello_world?key=1234",
-                "/www/index.php"))
-        );
-    }
-
+    /**
+     * Tests the router should fall back to GET method when trying to access a non-existed HEAD route.
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
     public function testHeadFallbackToGet()
     {
         $router = new SleeveRouter();
@@ -224,6 +275,12 @@ class RouterTest extends TestCase
         $this->assertEquals('This is GET-ONLY', $respond->body);
     }
 
+    /**
+     * Tests the router can handle unknown method request.
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
     public function testUnknownMethodRequest()
     {
         $router = new SleeveRouter();
@@ -242,37 +299,12 @@ class RouterTest extends TestCase
         $this->assertEquals('This method is unimplemented', $respond->body);
     }
 
-    public function testHttpErrorCallback()
-    {
-        $callback = function (Request $request, Response $response) {
-            $response->body = 'hey!';
-            return $response;
-        };
-        $router = new SleeveRouter();
-        $router->onHttpError($callback);
-        $request = new Request('get');
-        $request->url = '/';
-        $response = $router->dispatch($request, $response, false);
-        $this->assertEquals(404, $response->status_code);
-        $this->assertEquals('hey!', $response->body);
-    }
-
-    public function testClearHttpErrorHandlers()
-    {
-        $callback = function (Request $request, Response $response) {
-            $response->body = 'hey!';
-            return $response;
-        };
-        $router = new SleeveRouter();
-        $router->onHttpError($callback);
-        $request = new Request('get');
-        $request->url = '/';
-        $router->clearHttpErrorCallbacks();
-        $response = $router->dispatch($request, $response, false);
-        $this->assertEquals(404, $response->status_code);
-        $this->assertEquals('', $response->body);
-    }
-
+    /**
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     * @throws MethodDisabledException
+     */
     public function testDisableMethod()
     {
         $router = new SleeveRouter();
@@ -308,7 +340,56 @@ class RouterTest extends TestCase
         $this->assertEquals('post', $response->body);
     }
 
-    public function testSubdirRouting()
+    /**
+     * Test the HTTPError callback is working normally.
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
+    public function testHttpErrorCallback()
+    {
+        $callback = function (Request $request, Response $response) {
+            $response->body = 'hey!';
+            return $response;
+        };
+        $router = new SleeveRouter();
+        $router->onHttpError($callback);
+        $request = new Request('get');
+        $request->url = '/';
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(404, $response->status_code);
+        $this->assertEquals('hey!', $response->body);
+    }
+
+    /**
+     * Tests the router can clear all the http error handler callbacks.
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
+    public function testClearHttpErrorHandlers()
+    {
+        $callback = function (Request $request, Response $response) {
+            $response->body = 'hey!';
+            return $response;
+        };
+        $router = new SleeveRouter();
+        $router->onHttpError($callback);
+        $request = new Request('get');
+        $request->url = '/';
+        $router->clearHttpErrorCallbacks();
+        $response = $router->dispatch($request, $response, false);
+        $this->assertEquals(404, $response->status_code);
+        $this->assertEquals('', $response->body);
+    }
+
+    /**
+     * Test the router can work normally in subdirectory.
+     * @return void
+     * @throws InvalidEnvironmentException
+     * @throws RespondAlreadySentException
+     */
+    public function testSubdirectoryRouting()
     {
         $router = new SleeveRouter();
         $request = new Request('get');

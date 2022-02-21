@@ -141,6 +141,163 @@ class Request
     }
 
     /**
+     * Return true if it has cookie named $name
+     * @param string $name The cookie key name
+     * @return bool
+     */
+    public function hasCookie(string $name): bool
+    {
+        return sizeof($this->cookies) > 0 && array_key_exists($name, $this->cookies);
+    }
+
+    /**
+     * Get HTTP Cookie named $name
+     * @param string $name The cookie key name
+     * @return string
+     */
+    public function getCookie(string $name): string
+    {
+        return $this->cookies[$name];
+    }
+
+    /**
+     * Get count of cookies
+     * @return int
+     */
+    public function getCookieNum(): int
+    {
+        return count($this->cookies);
+    }
+
+    /**
+     * Return true if it has HTTP-GET param named $name
+     * @param string $name The GET param key name
+     * @return bool
+     */
+    public function hasGetParam(string $name): bool
+    {
+        return count($this->get_params) > 0 && array_key_exists($name, $this->get_params);
+    }
+
+    /**
+     * Get HTTP-GET Param named $name
+     * @param string $name The GET param key name
+     * @return mixed
+     */
+    public function getGetParam(string $name)
+    {
+        return $this->get_params[$name];
+    }
+
+    /**
+     * Get count of HTTP-GET Params
+     * @return int
+     */
+    public function getGetParamNum(): int
+    {
+        return sizeof($this->get_params);
+    }
+
+    /**
+     * Return true if it has POST param named $name
+     * @param string $name The POST param key name
+     * @return bool
+     */
+    public function hasPostParam(string $name): bool
+    {
+        return sizeof($this->post_params) > 0 && array_key_exists($name, $this->post_params);
+    }
+
+    /**
+     * Get HTTP-POST Param named $name
+     *
+     * @param string $name The POST param key name
+     * @return mixed
+     */
+    public function getPostParam(string $name)
+    {
+        return $this->post_params[$name];
+    }
+
+    /**
+     * Get count of POST Params
+     * @return int
+     */
+    public function getPostParamNum(): int
+    {
+        return sizeof($this->post_params);
+    }
+
+    /**
+     * Return true if it has Uploaded File named $name
+     * @param string $name The uploaded file name
+     * @return bool
+     */
+    public function hasFile(string $name): bool
+    {
+        return sizeof($this->files) > 0 && array_key_exists($name, $this->files);
+    }
+
+    /**
+     * Get uploaded file named $name
+     *
+     * If PHP Version is below 8.1.0, the RequestFile.full_path will be null.
+     * @see RequestFile
+     * @param string $name The uploaded file name
+     * @return RequestFile
+     */
+    public function getFile(string $name): RequestFile
+    {
+        return new RequestFile(
+            $this->files[$name]['name'],
+            $this->files[$name]['type'],
+            $this->files[$name]['size'],
+            $this->files[$name]['tmp_name'],
+            $this->files[$name]['error'],
+            // full_path available since PHP 8.1.0
+            array_key_exists('full_path', $this->files[$name]) ? $this->files[$name] : null
+        );
+    }
+
+    /**
+     * Get count of uploaded files
+     * @return int
+     */
+    public function getFileNum(): int
+    {
+        return count($this->files);
+    }
+
+    /**
+     * Return true if it has HTTP Header named $name
+     * @param string $name The HTTP Header key name
+     * @return bool
+     */
+    public function hasHeader(string $name): bool
+    {
+        return count($this->headers) > 0 && array_key_exists($name, $this->headers);
+    }
+
+    /**
+     * Get HTTP Header named $name
+     * @param string $name The HTTP Header key name
+     * @return string
+     */
+    public function getHeader(string $name): string
+    {
+        return $this->headers[$name];
+    }
+
+    /**
+     * Get count of HTTP Headers
+     * @return int
+     */
+    public function getHeaderNum()
+    {
+        return sizeof($this->headers);
+    }
+
+    /**
      * Creates Request from current environment(session)
      *
      * @return Request

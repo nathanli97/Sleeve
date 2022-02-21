@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ruleset name="SleeveCodingStandard" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./vendor/squizlabs/php_codesniffer/phpcs.xsd">
+    <description>A coding standard based on PSR12 for Sleeve project</description>
+
+    <!-- Based on PSR12 -->
+    <rule ref="./vendor/squizlabs/php_codesniffer/src/Standards/PSR12/ruleset.xml"/>
+
+    <!-- Public function must have comment of it -->
+    <rule ref="PEAR.Commenting.FunctionComment">
+        <properties>
+            <property name="minimumVisibility" value="public" />
+        </properties>
+        <type>error</type>
+    </rule>
+
+    <!-- Protected function should(recommend) have comment of it -->
+    <rule ref="PEAR.Commenting.FunctionComment">
+        <properties>
+            <property name="minimumVisibility" value="public" />
+        </properties>
+        <type>warning</type>
+    </rule>
+
+    <!-- Every class must have comment -->
+    <rule ref="PEAR.Commenting.ClassComment.Missing">
+        <type>error</type>
+    </rule>
+</ruleset>

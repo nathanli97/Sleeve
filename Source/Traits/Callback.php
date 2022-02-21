@@ -64,10 +64,10 @@ trait Callback
      *                     {
      *                          return $response;
      *                     }
-     * @param $callback
+     * @param callable $callback The function callback.
      * @return void
      */
-    public function onHttpError($callback)
+    public function onHttpError(callable $callback)
     {
         $this->http_error_callbacks[] = $callback;
     }
@@ -78,10 +78,10 @@ trait Callback
      *                     {
      *                          return $response;
      *                     }
-     * @param $callback
+     * @param callable $callback The function callback.
      * @return void
      */
-    public function onDisabledMethod($callback)
+    public function onDisabledMethod(callable $callback)
     {
         $this->disabled_method_access_callbacks[] = $callback;
     }
@@ -92,10 +92,10 @@ trait Callback
      *                     {
      *                          return $response;
      *                     }
-     * @param $callback
+     * @param callable $callback The function callback.
      * @return void
      */
-    public function onUnimplementedMethod($callback)
+    public function onUnimplementedMethod(callable $callback)
     {
         $this->unimplemented_method_access_callbacks[] = $callback;
     }

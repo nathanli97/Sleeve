@@ -27,12 +27,14 @@
 
 namespace Sleeve\Exceptions;
 
+use RuntimeException;
+
 /**
  * Unexpected Callback function return value exception
  * @author nathanli <xingru97@gmail.com>
  * @package Sleeve
  * @license Apache2
  */
-class UnexpectedCallbackFunctionReturnValueException extends \RuntimeException
+class UnexpectedCallbackFunctionReturnValueException extends RuntimeException
 {
 }

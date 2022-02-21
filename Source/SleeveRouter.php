@@ -69,40 +69,89 @@ class SleeveRouter
     }
 
     /**
-     * Method handlers
-     * @param string $regex
-     * @param $callback
+     * Add a new HTTP GET Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
      * @return void
      */
-    public function get(string $regex = "", $callback = null)
+    public function get(string $regex = "", ?callable $callback = null)
     {
         $this->respond('get', $regex, $callback);
     }
-    public function options(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP OPTIONS Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function options(string $regex = "", ?callable $callback = null)
     {
         $this->respond('options', $regex, $callback);
     }
-    public function post(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP POST Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function post(string $regex = "", ?callable $callback = null)
     {
         $this->respond('post', $regex, $callback);
     }
-    public function head(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP HEAD Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function head(string $regex = "", ?callable $callback = null)
     {
         $this->respond('head', $regex, $callback);
     }
-    public function put(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP PUT Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function put(string $regex = "", ?callable $callback = null)
     {
         $this->respond('put', $regex, $callback);
     }
-    public function delete(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP DELETE Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function delete(string $regex = "", ?callable $callback = null)
     {
         $this->respond('delete', $regex, $callback);
     }
-    public function trace(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP TRACE Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function trace(string $regex = "", ?callable $callback = null)
     {
         $this->respond('trace', $regex, $callback);
     }
-    public function connect(string $regex = "", $callback = null)
+
+    /**
+     * Add a new HTTP CONNECT Method handler
+     * @param string    $regex    The url pattern
+     * @param ?callable $callback The function callback of handler
+     * @return void
+     */
+    public function connect(string $regex = "", ?callable $callback = null)
     {
         $this->respond('connect', $regex, $callback);
     }
@@ -122,12 +171,12 @@ class SleeveRouter
      *  Otherwise, it will be sent to browser with HTTP 200 OK after translating to string.
      * - A Object : instance of Response.
      *  The router will use the response directly.
-     * @param string $method
-     * @param string $regex
-     * @param $callback
+     * @param string    $method   The HTTP Method
+     * @param string    $regex    The URL Pattern
+     * @param ?callable $callback The function callback of handler
      * @return void
      */
-    public function respond(string $method, string $regex = "", $callback = null)
+    public function respond(string $method, string $regex = "", ?callable $callback = null)
     {
         $method = strtoupper($method);
 
@@ -138,9 +187,9 @@ class SleeveRouter
      * Dispatch the request.
      * If $request is null, the router will create a request from webserver(e.g. Apache2).
      * If $send_response is true, this response will be sent.
-     * @param Request|null $request
-     * @param Response|null $response
-     * @param bool $send_response
+     * @param ?Request  $request       The prepared request. can be null.
+     * @param ?Response $response      The prepared response. can be null.
+     * @param bool      $send_response If true, The response will be sent back to client when ready.
      * @return Response
      * @throws RespondAlreadySentException|InvalidEnvironmentException
      */
@@ -289,9 +338,9 @@ class SleeveRouter
     }
 
     /**
-     * Removes the given handler.
-     * @param string $method
-     * @param string $regex
+     * Removes the given HTTP Method handler.
+     * @param string $method The HTTP Method.
+     * @param string $regex  The URL Pattern.
      * @return void
      */
     public function removeHandler(string $method, string $regex = "")
@@ -305,8 +354,8 @@ class SleeveRouter
 
     /**
      * Indicates the given handler is existed.
-     * @param string $method
-     * @param string $regex
+     * @param string $method The HTTP Method.
+     * @param string $regex  The URL Pattern.
      * @return bool
      */
     public function existsHandler(string $method, string $regex): bool

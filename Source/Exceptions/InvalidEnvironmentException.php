@@ -27,6 +27,8 @@
 
 namespace Sleeve\Exceptions;
 
+use Exception;
+
 /**
  * Invalid Environment Exception
  * This exception will be thrown when try to create an HTTP Request but current environment is invalid.
@@ -35,6 +37,6 @@ namespace Sleeve\Exceptions;
  * @package Sleeve
  * @license Apache2
  */
-class InvalidEnvironmentException extends \Exception
+class InvalidEnvironmentException extends Exception
 {
 }

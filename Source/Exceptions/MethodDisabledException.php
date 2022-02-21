@@ -28,6 +28,15 @@
 
 namespace Sleeve\Exceptions;
 
-class MethodDisabledException extends \Exception
+use Exception;
+
+/**
+ * Method Exception
+ * This exception will be thrown when try to access a disabled http method.
+ * @author nathanli <xingru97@gmail.com>
+ * @package Sleeve
+ * @license Apache2
+ */
+class MethodDisabledException extends Exception
 {
 }

@@ -3,10 +3,19 @@
 namespace Sleeve\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Sleeve\Exceptions\InvalidEnvironmentException;
 use Sleeve\Request;
 
+/**
+ * The test of request class
+ */
 class RequestTest extends TestCase
 {
+    /**
+     * Test if the router can create request from environment(e.g. Apache web server)
+     * @return void
+     * @throws InvalidEnvironmentException
+     */
     public function testCreateFromEnvironment()
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';

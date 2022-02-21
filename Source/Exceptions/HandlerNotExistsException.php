@@ -27,6 +27,8 @@
 
 namespace Sleeve\Exceptions;
 
+use RuntimeException;
+
 /**
  * Handler not exist exception
  * This exception will be thrown when try to remove a non-existed handler.
@@ -34,6 +36,6 @@ namespace Sleeve\Exceptions;
  * @package Sleeve
  * @license Apache2
  */
-class HandlerNotExistsException extends \RuntimeException
+class HandlerNotExistsException extends RuntimeException
 {
 }

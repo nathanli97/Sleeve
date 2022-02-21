@@ -27,6 +27,8 @@
 
 namespace Sleeve\Exceptions;
 
+use RuntimeException;
+
 /**
  * Handler already existed exception
  * This exception will be thrown when add a same handler twice.
@@ -34,6 +36,6 @@ namespace Sleeve\Exceptions;
  * @package Sleeve
  * @license Apache2
  */
-class HandlerAlreadyExistException extends \RuntimeException
+class HandlerAlreadyExistException extends RuntimeException
 {
 }

@@ -67,11 +67,13 @@ class Response
      */
     protected bool $sent;
 
+
     /**
      * The constructor.
-     * @param code the http status code, Default is 200
+     * @param int    $code The http status code, Default is 200
+     * @param string $body The HTTP response body
      */
-    public function __construct($code = 200, $body = '')
+    public function __construct(int $code = 200, string $body = '')
     {
         $this->clear();
         $this->status_code = $code;
@@ -80,10 +82,10 @@ class Response
 
     /**
      * Set redirect to new url header
-     * @param $url
+     * @param string $url The redirect url
      * @return void
      */
-    public function setRedirect($url)
+    public function setRedirect(string $url): void
     {
         $this->headers['Location'] = $url;
     }
@@ -102,6 +104,7 @@ class Response
     /**
      * Send this response
      * @throws RespondAlreadySentException
+     * @return void
      */
     public function send(): void
     {
@@ -130,7 +133,7 @@ class Response
 
     /**
      * Generates a response from specified status code
-     * @param int $code
+     * @param int $code HTTP Status code, must be valid
      * @return Response
      */
     public static function generateFromStatusCode(int $code): Response

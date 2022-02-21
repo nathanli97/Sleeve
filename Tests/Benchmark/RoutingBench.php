@@ -5,6 +5,9 @@ namespace Sleeve\Tests\Benchmark;
 use Sleeve\Request;
 use Sleeve\SleeveRouter;
 
+/**
+ * The main class of benchmarking
+ */
 class RoutingBench
 {
     protected SleeveRouter $router;
@@ -15,6 +18,9 @@ class RoutingBench
     private array $requests;
     private int $i;
 
+    /**
+     * The constructor.
+     */
     public function __construct()
     {
         $this->i = 0;
@@ -68,9 +74,11 @@ class RoutingBench
         });
     }
     /**
+     * The bench function.
      * @Revs(3000)
+     * @return void
      */
-    public function benchRouting()
+    public function benchRouting(): void
     {
         $this->request->url = $this->requests[$this->i++];
         $this->router->dispatch($this->request, $response, false);
