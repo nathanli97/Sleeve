@@ -144,6 +144,14 @@ class Response
         return $response;
     }
 
+    public function unsetSession($key)
+    {
+        if(array_key_exists($key, $_SESSION))
+        {
+            unset($_SESSION[$key]);
+        }
+    }
+
     /**
      * Used for set headers
      * @return void

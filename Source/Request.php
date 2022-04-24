@@ -105,6 +105,21 @@ class Request
     public array $cookies;
 
     /**
+     * Request Session array
+     *
+     * @var array
+     */
+    public array $sessions;
+
+
+    /**
+     * Url Groupping
+     *
+     * @var array
+     */
+    public array $url_group;
+
+    /**
      * Constructor
      *
      * @param string|null $method      HTTP Request method.
@@ -114,6 +129,7 @@ class Request
      * @param array       $cookies     HTTP Cookies.
      * @param array       $server      Server variables.Set by WebServer.
      * @param array       $files       HTTP Uploaded files.
+     * @param array       $sessions    HTTP session.
      * @param string|null $body        HTTP Request Body.
      */
     public function __construct(
@@ -124,6 +140,7 @@ class Request
         array $cookies = array(),
         array $server = array(),
         array $files = array(),
+        array $sessions = array(),
         string $body = ''
     ) {
         $this->method = strtoupper($method);
@@ -133,7 +150,7 @@ class Request
         $this->cookies = $cookies;
         $this->server = $server;
         $this->files = $files;
-
+        $this->sessions = $sessions;
         // Take care the default value
         if ($body !== '') {
             $this->body = $body;
@@ -298,6 +315,46 @@ class Request
     }
 
     /**
+     * Return true if it has HTTP Session named $name
+     * @param string $name The HTTP Session key name
+     * @return bool
+     */
+    public function hasSession(string $name): bool
+    {
+        return count($this->sessions) > 0 && array_key_exists($name, $this->sessions);
+    }
+
+    /**
+     * Get HTTP Session named $name
+     * @param string $name The HTTP Session key name
+     * @return mixed
+     */
+    public function getSession(string $name)
+    {
+        return $this->sessions[$name];
+    }
+
+    /**
+     * Return true if it has URL Group numbered $i
+     * @param string $id The URL Group number
+     * @return bool
+     */
+    public function hasUrlGroup(int $i): bool
+    {
+        return $i < count($this->url_group);
+    }
+
+    /**
+     * Get URL Group numbered $i
+     * @param string $id The URL Group number
+     * @return mixed
+     */
+    public function getUrlGroup(int $i)
+    {
+        return $this->url_group[$i];
+    }
+
+    /**
      * Creates Request from current environment(session)
      *
      * @return Request
@@ -316,6 +373,7 @@ class Request
         $request->cookies = $_COOKIE;
         $request->server = $_SERVER;
         $request->headers = self::getAllHeaders();
+        $request->sessions = $_SESSION;
         $request->body = @file_get_contents('php://input');
         return $request;
     }
