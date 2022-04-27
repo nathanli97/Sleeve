@@ -375,6 +375,11 @@ class Request
         $request->headers = self::getAllHeaders();
         $request->sessions = $_SESSION;
         $request->body = @file_get_contents('php://input');
+
+        if(count($request->post_params) == 0)
+        {
+            parse_str($request->body,$request->post_params);
+        }
         return $request;
     }
 
