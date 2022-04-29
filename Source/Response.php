@@ -144,10 +144,14 @@ class Response
         return $response;
     }
 
+    /**
+     * Unset session named $key
+     * @param mixed $key The HTTP session name
+     * @return void
+     */
     public function unsetSession($key)
     {
-        if(array_key_exists($key, $_SESSION))
-        {
+        if (array_key_exists($key, $_SESSION)) {
             unset($_SESSION[$key]);
         }
     }

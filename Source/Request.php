@@ -70,11 +70,11 @@ class Request
     public array $get_params;
 
     /**
-     * Request HTTP POST Params
+     * Request HTTP Params
      *
      * @var array
      */
-    public array $post_params;
+    public array $body_params;
 
     /**
      * Webserver created attrs
@@ -125,7 +125,7 @@ class Request
      * @param string|null $method      HTTP Request method.
      * @param array       $headers     HTTP Headers.
      * @param array       $get_params  HTTP GET Params.
-     * @param array       $post_params HTTP POST Params.
+     * @param array       $body_params HTTP POST Params.
      * @param array       $cookies     HTTP Cookies.
      * @param array       $server      Server variables.Set by WebServer.
      * @param array       $files       HTTP Uploaded files.
@@ -136,7 +136,7 @@ class Request
         string $method = 'GET',
         array $headers = array(),
         array $get_params = array(),
-        array $post_params = array(),
+        array $body_params = array(),
         array $cookies = array(),
         array $server = array(),
         array $files = array(),
@@ -146,7 +146,7 @@ class Request
         $this->method = strtoupper($method);
         $this->headers = $headers;
         $this->get_params = $get_params;
-        $this->post_params = $post_params;
+        $this->body_params = $body_params;
         $this->cookies = $cookies;
         $this->server = $server;
         $this->files = $files;
@@ -222,7 +222,7 @@ class Request
      */
     public function hasPostParam(string $name): bool
     {
-        return sizeof($this->post_params) > 0 && array_key_exists($name, $this->post_params);
+        return sizeof($this->body_params) > 0 && array_key_exists($name, $this->body_params);
     }
 
     /**
@@ -233,7 +233,7 @@ class Request
      */
     public function getPostParam(string $name)
     {
-        return $this->post_params[$name];
+        return $this->body_params[$name];
     }
 
     /**
@@ -242,7 +242,7 @@ class Request
      */
     public function getPostParamNum(): int
     {
-        return sizeof($this->post_params);
+        return sizeof($this->body_params);
     }
 
     /**
@@ -309,7 +309,7 @@ class Request
      * Get count of HTTP Headers
      * @return int
      */
-    public function getHeaderNum()
+    public function getHeaderNum(): int
     {
         return sizeof($this->headers);
     }
@@ -336,22 +336,22 @@ class Request
 
     /**
      * Return true if it has URL Group numbered $i
-     * @param string $id The URL Group number
+     * @param int $id The URL Group number
      * @return bool
      */
-    public function hasUrlGroup(int $i): bool
+    public function hasUrlGroup(int $id): bool
     {
-        return $i < count($this->url_group);
+        return $id < count($this->url_group);
     }
 
     /**
      * Get URL Group numbered $i
-     * @param string $id The URL Group number
+     * @param int $id The URL Group number
      * @return mixed
      */
-    public function getUrlGroup(int $i)
+    public function getUrlGroup(int $id)
     {
-        return $this->url_group[$i];
+        return $this->url_group[$id];
     }
 
     /**
@@ -368,18 +368,20 @@ class Request
         $request = new Request($_SERVER['REQUEST_METHOD']);
         $request->url = $_SERVER['REQUEST_URI'];
         $request->get_params = $_GET;
-        $request->post_params = $_POST;
+        $request->body_params = $_POST;
         $request->files = $_FILES;
         $request->cookies = $_COOKIE;
         $request->server = $_SERVER;
         $request->headers = self::getAllHeaders();
-        $request->sessions = $_SESSION;
+        if (isset($_SESSION)) {
+            $request->sessions = $_SESSION;
+        }
         $request->body = @file_get_contents('php://input');
 
-        if(count($request->post_params) == 0)
-        {
-            parse_str($request->body,$request->post_params);
+        if (count($request->body_params) == 0) {
+            parse_str($request->body, $request->body_params);
         }
+
         return $request;
     }
 

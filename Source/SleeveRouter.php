@@ -63,7 +63,7 @@ class SleeveRouter
      */
     public function __construct()
     {
-        session_start();
+        @session_start();
         $this->initHandlersArray();
         $this->initCallbacks();
         $this->has_response_sent = false;
@@ -282,7 +282,6 @@ class SleeveRouter
             ) {
                 $matches[$preg_matches[0]] = $callback;
                 $request->url_group = $preg_matches;
-
             }
         }
 

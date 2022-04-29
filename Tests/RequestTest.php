@@ -28,7 +28,7 @@ class RequestTest extends TestCase
         );
         $request = Request::createFromEnvironment();
         $this->assertEquals($_GET, $request->get_params);
-        $this->assertEquals($_POST, $request->post_params);
+        $this->assertEquals($_POST, $request->body_params);
         $this->assertEquals($_SERVER, $request->server);
         $this->assertEquals($_COOKIE, $request->cookies);
         $this->assertEquals($_FILES, $request->files);
